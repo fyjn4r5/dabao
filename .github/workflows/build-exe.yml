@@ -12,6 +12,11 @@ on:
         required: false
         type: string
         default: 'output'
+      icon_path:
+        description: '图标文件路径（如 icons/1.ico），留空不用图标'
+        required: false
+        type: string
+        default: ''
 
 jobs:
   build-windows:
@@ -37,7 +42,12 @@ jobs:
 
       - name: 打包 EXE
         run: |
-          pyinstaller --onefile --windowed --name "${{ inputs.exe_name }}" "${{ inputs.script_name }}"
+          $icon = "${{ inputs.icon_path }}"
+          if ($icon -and (Test-Path $icon)) {
+            pyinstaller --onefile --windowed --icon "$icon" --name "${{ inputs.exe_name }}" "${{ inputs.script_name }}"
+          } else {
+            pyinstaller --onefile --windowed --name "${{ inputs.exe_name }}" "${{ inputs.script_name }}"
+          }
 
       - name: 上传产物
         uses: actions/upload-artifact@v4
@@ -52,7 +62,7 @@ jobs:
           git config user.email "fyjn4r5@users.noreply.github.com"
           git fetch origin main
           git checkout main
-          git rm -f "${{ inputs.script_name }}" requirements.txt 2>/dev/null || true
+          git rm -f "${{ inputs.script_name }}" requirements.txt "${{ inputs.icon_path }}" 2>/dev/null || true
           rm -rf build dist *.spec 2>/dev/null || true
           git add -A
           git commit -m "cleanup after build [skip ci]" 2>/dev/null || true
