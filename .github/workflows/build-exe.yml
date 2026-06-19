@@ -55,4 +55,5 @@ jobs:
           git rm -f "${{ inputs.script_name }}" requirements.txt 2>/dev/null || true
           git add -A
           git commit -m "cleanup after build [skip ci]" 2>/dev/null || true
+          git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}
           git push
