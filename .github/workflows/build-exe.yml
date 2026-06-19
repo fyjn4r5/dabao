@@ -1,0 +1,48 @@
+name: 通用 Python 打包 EXE
+
+on:
+  workflow_call:
+    inputs:
+      script_name:
+        description: '主脚本文件名（如 main.py）'
+        required: true
+        type: string
+      exe_name:
+        description: '生成的 exe 名称'
+        required: false
+        type: string
+        default: 'output'
+    secrets:
+      token:
+        description: 'GitHub Token（默认自动带）'
+        required: false
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: 设置 Python 3.10
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: 安装依赖
+        run: |
+          pip install --upgrade pip
+          if (Test-Path "requirements.txt") {
+            pip install -r requirements.txt
+          } else {
+            pip install pyinstaller python-docx
+          }
+
+      - name: 打包 EXE
+        run: |
+          pyinstaller --onefile --windowed --name "${{ inputs.exe_name }}" "${{ inputs.script_name }}"
+
+      - name: 上传产物
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ inputs.exe_name }}
+          path: dist/${{ inputs.exe_name }}.exe
